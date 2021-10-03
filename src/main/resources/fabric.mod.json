@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "intellibow",
+  "version": "${version}",
+  "name": "Intelli Bow",
+  "description": "A simple mod that adds bow stuff",
+  "authors": [
+    "Peanuuutz"
+  ],
+  "contact": {
+    "sources": "https://github.com/Peanuuutz/intelli-bow"
+  },
+  "license": "GPLv3",
+  "icon": "assets/intellibow/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "net.peanuuutz.intellibow.IntelliBow"
+      }
+    ],
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "net.peanuuutz.intellibow.client.IntelliBowClient"
+      }
+    ]
+  },
+  "mixins": [
+    "intellibow.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "fabric-language-kotlin": ">=1.5.0+kotlin.1.4.31",
+    "minecraft": "1.16.x"
+  }
+}

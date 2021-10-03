@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Idea
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Fabric
+run/
+minecraft/
+
+# Project
+src/test/
