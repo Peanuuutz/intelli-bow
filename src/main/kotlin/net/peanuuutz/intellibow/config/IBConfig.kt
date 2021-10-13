@@ -12,24 +12,25 @@ import java.nio.file.Files
 data class IBConfig(
     @SerialName("Recursive Bow")
     val recursiveBowAttribute: IntelliBowAttribute = IntelliBowAttribute(
-        baseSpeedModifier = -0.1f,
-        baseDamageModifier = 1.0,
+        baseSpeedModifier = -0.2f,
+        baseDamageModifier = 2.0,
         moduleCapacity = 2
     ),
     @SerialName("Composite Bow")
     val compositeBowAttribute: IntelliBowAttribute = IntelliBowAttribute(
-        baseSpeedModifier = 0.1f,
-        baseDamageModifier = 0.0,
+        baseSpeedModifier = 0.0f,
+        baseDamageModifier = 0.5,
         moduleCapacity = 3
     ),
     @SerialName("Modules")
     val moduleAttributes: ModuleAttributes = ModuleAttributes(
-        pullingDeviceSpeedModifier = 0.1f
+        pullingDeviceSpeedModifier = 0.1f,
+        trajectorySimulatorRange = 64
     )
 ) {
     @Serializable
     data class IntelliBowAttribute(
-        @Comment("Literally pulling speed. Float type, bigger than -1.0.")
+        @Comment("Literally pulling speed. Float type, bigger than -1.")
         var baseSpeedModifier: Float,
         @Comment("Extra damage (by health point) for each arrow shot by this bow. Double type.")
         var baseDamageModifier: Double,
@@ -38,18 +39,20 @@ data class IBConfig(
     ) : ConfigEntryValidator {
         override fun validate() {
             require(baseSpeedModifier > -1.0f)
-            require(baseDamageModifier > 0.0)
-            require(moduleCapacity > 0)
+            require(moduleCapacity >= 0)
         }
     }
 
     @Serializable
     data class ModuleAttributes(
         @Comment("Literally pulling speed, but for pulling device. Float type.")
-        var pullingDeviceSpeedModifier: Float
+        var pullingDeviceSpeedModifier: Float,
+        @Comment("(You can't see too far!) Int type.")
+        var trajectorySimulatorRange: Int
     ) : ConfigEntryValidator {
         override fun validate() {
-            require(pullingDeviceSpeedModifier > 0)
+            require(pullingDeviceSpeedModifier > 0.0f)
+            require(trajectorySimulatorRange > 0)
         }
     }
 
@@ -71,21 +74,20 @@ object IBConfigProvider {
             }
         } catch (e: RuntimeException) {
             e.printStackTrace()
-            save()
+            save(true)
         }
     } else {
-        save()
+        save(false)
     }
 
-    private fun save(): IBConfig {
+    private fun save(alreadyExists: Boolean): IBConfig {
         val config = IBConfig()
-        if (Files.exists(configPath)) {
-            Files.createFile(configPath)
+        if (alreadyExists) {
+            Files.delete(configPath)
         }
+        Files.createFile(configPath)
         val content = Yaml.encodeToString(config)
-        configPath.toFile().printWriter().use {
-            it.write(content)
-        }
+        configPath.toFile().printWriter().use { it.write(content) }
         return config
     }
 }

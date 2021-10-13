@@ -1,0 +1,14 @@
+{
+  "scope_open": {
+    "subtitle": "subtitles.intellibow.scope_open",
+    "sounds": [
+      "intellibow:scope_open"
+    ]
+  },
+  "scope_close": {
+    "subtitle": "subtitles.intellibow.scope_close",
+    "sounds": [
+      "intellibow:scope_close"
+    ]
+  }
+}

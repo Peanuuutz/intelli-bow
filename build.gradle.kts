@@ -41,18 +41,15 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
     val yamlktVersion: String by project
-    compileOnly("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
+    implementation("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
     shadow("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
 
     // Test
-    testImplementation("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 tasks {
     shadowJar {
-        relocate("net.mamoe.yamlkt", "${project.group}.intellibow.shadowed.net.mamoe.yamlkt")
-
         configurations = listOf(project.configurations.shadow.get())
         archiveClassifier.set(null as String?)
 

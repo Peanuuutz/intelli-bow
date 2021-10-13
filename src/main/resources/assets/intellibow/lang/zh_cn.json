@@ -1,0 +1,20 @@
+{
+  "itemGroup.intellibow.general": "Intelli Bow",
+
+  "item.intellibow.recursive_bow": "反曲弓",
+  "item.intellibow.composite_bow": "复合弓",
+  "item.intellibow.scope": "瞄准镜",
+  "item.intellibow.lighter": "点火器",
+  "item.intellibow.trajectory_simulator": "轨迹预建器",
+  "item.intellibow.pulling_device": "牵引装置",
+  "item.intellibow.tracker": "追踪器",
+  "item.intellibow.wrench": "扳手",
+
+  "item.intellibow.intellibow.tooltip": "模块：%s",
+
+  "subtitles.intellibow.scope_open": "瞄准镜：开启",
+  "subtitles.intellibow.scope_close": "瞄准镜：关闭",
+
+  "key.categories.intellibow.general": "Intelli Bow",
+  "key.intellibow.toggle_lighter": "开关点火器"
+}

@@ -1,8 +1,14 @@
-package net.peanuuutz.intellibow.entity.trackerarrow
+package net.peanuuutz.intellibow.entity
 
+import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.render.entity.ProjectileEntityRenderer
+import net.minecraft.entity.EntityDimensions
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.SpawnGroup
 import net.minecraft.entity.data.DataTracker
+import net.minecraft.entity.data.TrackedData
 import net.minecraft.entity.data.TrackedDataHandlerRegistry
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
@@ -14,14 +20,15 @@ import net.minecraft.potion.PotionUtil
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
-import net.peanuuutz.intellibow.registry.Constants
-import net.peanuuutz.intellibow.registry.TRACKER_ARROW_ENTITY
+import net.peanuuutz.intellibow.IntelliBow
+import net.peanuuutz.intellibow.util.Constants
 import net.peanuuutz.intellibow.util.IDInjector
+import net.peanuuutz.intellibow.util.entityType
 import net.peanuuutz.intellibow.util.getCompoundOrCreate
 import kotlin.math.max
 
 class TrackerArrowEntity(
-    type: EntityType<TrackerArrowEntity> = TRACKER_ARROW_ENTITY,
+    type: EntityType<TrackerArrowEntity> = ENTITY_TYPE,
     world: World
 ) : PersistentProjectileEntity(type, world), IDInjector {
     override val id = Constants.TRACKER_ARROW
@@ -32,18 +39,23 @@ class TrackerArrowEntity(
         if (owner is PlayerEntity) {
             pickupType = PickupPermission.ALLOWED
         }
-        if (imitator.item != Items.ARROW) {
-            dataTracker.set(IMITATOR, imitator)
-        }
+        dataTracker[IMITATOR] = imitator
     }
 
     override fun tick() {
-
+        super.tick() // TODO: implementation
     }
 
     override fun initDataTracker() {
         super.initDataTracker()
-        dataTracker.startTracking(IMITATOR, ItemStack(Items.ARROW))
+        dataTracker.startTracking(IMITATOR, ItemStack.EMPTY)
+    }
+
+    override fun onTrackedDataSet(data: TrackedData<*>) {
+        super.onTrackedDataSet(data)
+        if (IMITATOR == data) {
+            dataTracker[IMITATOR].holder = this
+        }
     }
 
     override fun asItemStack(): ItemStack = dataTracker[IMITATOR] // Why it's protected??
@@ -72,39 +84,46 @@ class TrackerArrowEntity(
         }
     }
 
-    override fun writeCustomDataToTag(tag: CompoundTag) { // Too lazy to write DSL
+    override fun writeCustomDataToTag(tag: CompoundTag) {
         super.writeCustomDataToTag(tag)
         tag.put(Constants.MOD_TAG, CompoundTag().apply {
-            put(Constants.IMITATOR_TAG, CompoundTag().apply {
-                val ammo = dataTracker[IMITATOR]
-                putString(Constants.ID_TAG, Registry.ITEM.getId(ammo.item).toString())
-                if (ammo.tag?.isEmpty == false) {
-                    put(Constants.IMITATOR_DATA_TAG, ammo.tag)
-                }
-            })
+            put(Constants.IMITATOR_TAG, dataTracker[IMITATOR].toTag(CompoundTag()))
         })
     }
 
     override fun readCustomDataFromTag(tag: CompoundTag) {
         super.readCustomDataFromTag(tag)
-        if (!tag.getCompoundOrCreate(Constants.MOD_TAG).isEmpty) {
-            val imitatorTag = tag.getCompound(Constants.MOD_TAG).getCompoundOrCreate(Constants.IMITATOR_TAG)
-            val id = Identifier.tryParse(imitatorTag.getString(Constants.ID_TAG))
-            val item = if (id != null) {
-                Registry.ITEM[id]
+        val rootTag = tag.getCompoundOrCreate(Constants.MOD_TAG)
+        if (!rootTag.isEmpty) {
+            val imitatorTag = rootTag.getCompoundOrCreate(Constants.IMITATOR_TAG)
+            dataTracker[IMITATOR] = if (!imitatorTag.isEmpty) {
+                ItemStack.fromTag(imitatorTag)
             } else {
-                Items.ARROW
+                ItemStack(Items.ARROW)
             }
-            dataTracker.set(IMITATOR, ItemStack(item).apply {
-                val data = imitatorTag.getCompound(Constants.IMITATOR_DATA_TAG)
-                if (!data.isEmpty) {
-                    this.tag = data
-                }
-            })
         }
     }
 
     companion object {
         private val IMITATOR = DataTracker.registerData(TrackerArrowEntity::class.java, TrackedDataHandlerRegistry.ITEM_STACK)
+
+        val ENTITY_TYPE: EntityType<TrackerArrowEntity> = entityType(
+            id = Constants.TRACKER_ARROW,
+            spawnGroup = SpawnGroup.MISC,
+            provider = ::TrackerArrowEntity
+        ) {
+            disableSummon()
+            dimensions(EntityDimensions.fixed(0.5f, 0.5f))
+            trackRangeChunks(4)
+            trackedUpdateRate(20)
+        }
     }
+}
+
+object TrackerArrowEntityRenderer : ProjectileEntityRenderer<TrackerArrowEntity>(MinecraftClient.getInstance().entityRenderDispatcher) {
+    init {
+        EntityRendererRegistry.INSTANCE.register(TrackerArrowEntity.ENTITY_TYPE) { _, _ -> TrackerArrowEntityRenderer }
+    }
+
+    override fun getTexture(entity: TrackerArrowEntity?) = Identifier(IntelliBow.MOD_ID, "textures/entity/${Constants.TRACKER_ARROW}.png")
 }

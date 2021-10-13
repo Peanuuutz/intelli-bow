@@ -1,7 +1,7 @@
 package net.peanuuutz.intellibow.item.module
 
 import net.minecraft.util.Rarity
-import net.peanuuutz.intellibow.registry.Constants
+import net.peanuuutz.intellibow.util.Constants
 import net.peanuuutz.intellibow.util.settings
 
 object ScopeItem : ModuleItem(settings()) {

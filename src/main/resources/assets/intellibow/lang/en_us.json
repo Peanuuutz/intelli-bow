@@ -1,0 +1,20 @@
+{
+  "itemGroup.intellibow.general": "Intelli Bow",
+
+  "item.intellibow.recursive_bow": "Recursive Bow",
+  "item.intellibow.composite_bow": "Composite Bow",
+  "item.intellibow.scope": "Scope",
+  "item.intellibow.lighter": "Lighter",
+  "item.intellibow.trajectory_simulator": "Trajectory Simulator",
+  "item.intellibow.pulling_device": "Pulling Device",
+  "item.intellibow.tracker": "Tracker",
+  "item.intellibow.wrench": "Wrench",
+
+  "item.intellibow.intellibow.tooltip": "Modules: %s",
+
+  "subtitles.intellibow.scope_open": "Scope opens",
+  "subtitles.intellibow.scope_close": "Scope closes",
+
+  "key.categories.intellibow.general": "Intelli Bow",
+  "key.intellibow.toggle_lighter": "Toggle Lighter"
+}

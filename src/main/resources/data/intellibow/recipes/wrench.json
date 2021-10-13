@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    " II",
+    "D  "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:orange_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "intellibow:wrench"
+  }
+}

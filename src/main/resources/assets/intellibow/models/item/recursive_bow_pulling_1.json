@@ -1,0 +1,6 @@
+{
+  "parent": "intellibow:item/recursive_bow",
+  "textures": {
+    "layer0": "intellibow:item/recursive_bow_pulling_1"
+  }
+}

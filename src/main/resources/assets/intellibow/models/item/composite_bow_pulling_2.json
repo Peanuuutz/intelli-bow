@@ -1,0 +1,6 @@
+{
+  "parent": "intellibow:item/composite_bow",
+  "textures": {
+    "layer0": "intellibow:item/composite_bow_pulling_2"
+  }
+}

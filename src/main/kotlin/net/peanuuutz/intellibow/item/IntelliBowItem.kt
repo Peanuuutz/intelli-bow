@@ -1,5 +1,7 @@
 package net.peanuuutz.intellibow.item
 
+import net.minecraft.client.item.TooltipContext
+import net.minecraft.client.resource.language.I18n
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.LivingEntity
@@ -12,25 +14,26 @@ import net.minecraft.item.Items
 import net.minecraft.sound.SoundCategory
 import net.minecraft.sound.SoundEvents
 import net.minecraft.stat.Stats
+import net.minecraft.text.Text
+import net.minecraft.text.TranslatableText
+import net.minecraft.util.Formatting
 import net.minecraft.world.World
 import net.peanuuutz.intellibow.IntelliBow
-import net.peanuuutz.intellibow.entity.trackerarrow.TrackerArrowEntity
+import net.peanuuutz.intellibow.entity.TrackerArrowEntity
 import net.peanuuutz.intellibow.item.module.LighterItem
 import net.peanuuutz.intellibow.item.module.PullingDeviceItem
 import net.peanuuutz.intellibow.item.module.TrackerItem
-import net.peanuuutz.intellibow.item.module.TrajectorySimulatorItem
-import net.peanuuutz.intellibow.network.TrackerArrowSpawnPacketFactory
-import net.peanuuutz.intellibow.registry.Constants
-import net.peanuuutz.intellibow.util.IDInjector
-import net.peanuuutz.intellibow.util.findModule
-import net.peanuuutz.intellibow.util.modules
+import net.peanuuutz.intellibow.network.TrackerArrowSpawnS2CPacketFactory
+import net.peanuuutz.intellibow.util.*
 import kotlin.math.min
 
 abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjector {
     open val baseSpeedModifier = 0.0f
     open val baseDamageModifier = 0.0
-
     open val moduleCapacity = 0
+    open val maxModuleTier = 0
+
+    private val pullingDeviceSpeedModifier = IntelliBow.config.moduleAttributes.pullingDeviceSpeedModifier
 
     override fun onStoppedUsing(stack: ItemStack, world: World, user: LivingEntity?, remainingUseTicks: Int) {
         if (user is PlayerEntity) {
@@ -65,7 +68,7 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
                             if (punch > 0) {
                                 setPunch(punch)
                             }
-                            if (stack.findModule(LighterItem)?.getInt(Constants.MODULE_STATE_TAG)?.equals(1) == true ||
+                            if (stack.findModule(LighterItem)?.getInt(Constants.LIGHTER_MODE_TAG)?.equals(1) == true ||
                                 EnchantmentHelper.getLevel(Enchantments.FLAME, stack) > 0
                             ) {
                                 setOnFireFor(100)
@@ -77,7 +80,7 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
                             }
                         }.let(world::spawnEntity)
                         if (arrowEntity is TrackerArrowEntity) {
-                            TrackerArrowSpawnPacketFactory.send(arrowEntity)
+                            TrackerArrowSpawnS2CPacketFactory.send(arrowEntity)
                         }
                         stack.damage(1, user) { it.sendToolBreakStatus(user.activeHand) }
                     }
@@ -102,19 +105,39 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
     fun getPullProgress(stack: ItemStack, useTicks: Int): Float {
         var speedModifier = baseSpeedModifier
         if (stack.findModule(PullingDeviceItem) != null) {
-            speedModifier += IntelliBow.config.moduleAttributes.pullingDeviceSpeedModifier
+            speedModifier += pullingDeviceSpeedModifier
         }
         val pullTime = min(1.0f, useTicks / 20.0f * (1 + speedModifier))
         return pullTime * (2.0f - pullTime)
     }
 
-    override fun usageTick(world: World, user: LivingEntity?, stack: ItemStack, remainingUseTicks: Int) {
-        if (stack.findModule(TrajectorySimulatorItem) != null) {
-
+    override fun onCraft(stack: ItemStack, world: World?, player: PlayerEntity?) {
+        stack.modules
+        if (player != null) {
+            val removedModuleId = stack.getSubTag(Constants.MOD_TAG)!!.let {
+                val temp = it.getString(Constants.REMOVED_MODULE_TAG)
+                it.remove(Constants.REMOVED_MODULE_TAG)
+                temp
+            }
+            if (removedModuleId.isNotEmpty()) {
+                val module = getItemById(removedModuleId)?.defaultStack ?: return
+                player.giveItemStack(module)
+            }
         }
     }
 
-    override fun onCraft(stack: ItemStack?, world: World, player: PlayerEntity?) {
-        stack?.modules
+    override fun appendTooltip(
+        stack: ItemStack,
+        world: World?,
+        tooltip: MutableList<Text>,
+        context: TooltipContext
+    ) {
+        val modules = stack.modules
+        if (modules.isNotEmpty()) {
+            tooltip.add(TranslatableText(
+                "item.intellibow.intellibow.tooltip",
+                modules.joinToString { I18n.translate("item.intellibow.${it.id}") }
+            ).formatted(Formatting.LIGHT_PURPLE))
+        }
     }
 }

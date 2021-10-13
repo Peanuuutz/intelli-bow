@@ -2,7 +2,7 @@ package net.peanuuutz.intellibow.item
 
 import net.minecraft.util.Rarity
 import net.peanuuutz.intellibow.IntelliBow
-import net.peanuuutz.intellibow.registry.Constants
+import net.peanuuutz.intellibow.util.Constants
 import net.peanuuutz.intellibow.util.settings
 
 object RecurveBowItem : IntelliBowItem(settings {
@@ -10,10 +10,17 @@ object RecurveBowItem : IntelliBowItem(settings {
 }) {
     override val id = Constants.RECURSIVE_BOW
 
-    override val baseSpeedModifier = IntelliBow.config.recursiveBowAttribute.baseSpeedModifier
-    override val baseDamageModifier = IntelliBow.config.recursiveBowAttribute.baseDamageModifier
+    override val baseSpeedModifier: Float
+    override val baseDamageModifier: Double
+    override val moduleCapacity: Int
+    override val maxModuleTier = 2
 
-    override val moduleCapacity = IntelliBow.config.recursiveBowAttribute.moduleCapacity
+    init {
+        val attributes = IntelliBow.config.recursiveBowAttribute
+        baseSpeedModifier = attributes.baseSpeedModifier
+        baseDamageModifier = attributes.baseDamageModifier
+        moduleCapacity = attributes.moduleCapacity
+    }
 }
 
 object CompositeBowItem : IntelliBowItem(settings {
@@ -22,8 +29,15 @@ object CompositeBowItem : IntelliBowItem(settings {
 }) {
     override val id = Constants.COMPOSITE_BOW
 
-    override val baseSpeedModifier = IntelliBow.config.compositeBowAttribute.baseSpeedModifier
-    override val baseDamageModifier = IntelliBow.config.compositeBowAttribute.baseDamageModifier
+    override val baseSpeedModifier: Float
+    override val baseDamageModifier: Double
+    override val moduleCapacity: Int
+    override val maxModuleTier = 3
 
-    override val moduleCapacity = IntelliBow.config.compositeBowAttribute.moduleCapacity
+    init {
+        val attributes = IntelliBow.config.compositeBowAttribute
+        baseSpeedModifier = attributes.baseSpeedModifier
+        baseDamageModifier = attributes.baseDamageModifier
+        moduleCapacity = attributes.moduleCapacity
+    }
 }

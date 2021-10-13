@@ -1,15 +1,16 @@
 package net.peanuuutz.intellibow.network
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.util.math.MathHelper
-import net.peanuuutz.intellibow.entity.trackerarrow.TrackerArrowEntity
-import net.peanuuutz.intellibow.registry.Constants
+import net.peanuuutz.intellibow.entity.TrackerArrowEntity
+import net.peanuuutz.intellibow.util.Constants
 
-object TrackerArrowSpawnPacketFactory {
+object TrackerArrowSpawnS2CPacketFactory {
     fun send(arrowEntity: TrackerArrowEntity) {
         val buf = PacketByteBufs.create().apply {
             writeInt(arrowEntity.entityId)
@@ -26,7 +27,7 @@ object TrackerArrowSpawnPacketFactory {
         }
     }
 
-    fun receive(buf: PacketByteBuf, world: ClientWorld) = TrackerArrowEntity(world = world).apply {
+    fun createArrow(buf: PacketByteBuf, world: ClientWorld) = TrackerArrowEntity(world = world).apply {
         entityId = buf.readInt()
         uuid = buf.readUuid()
         val x = buf.readDouble()
@@ -38,5 +39,11 @@ object TrackerArrowSpawnPacketFactory {
         pitch = buf.readInt() * 360 / 256.0f
         yaw = buf.readInt() * 360 / 256.0f
         owner = world.getEntityById(buf.readInt())
+    }
+}
+
+object LighterModeChangeC2SPacketFactory {
+    fun send() {
+        ClientPlayNetworking.send(Constants.LIGHTER_MODE_CHANGE, PacketByteBufs.empty())
     }
 }

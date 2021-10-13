@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "GAG",
+    " & "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "A": {
+      "item": "minecraft:spectral_arrow"
+    },
+    "&": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "result": {
+    "item": "intellibow:trajectory_simulator"
+  }
+}
