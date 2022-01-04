@@ -1,5 +1,6 @@
 package net.peanuuutz.intellibow.item
 
+import net.minecraft.util.math.MathHelper.clamp
 import net.minecraft.client.item.TooltipContext
 import net.minecraft.client.resource.language.I18n
 import net.minecraft.enchantment.EnchantmentHelper
@@ -25,7 +26,6 @@ import net.peanuuutz.intellibow.item.module.PullingDeviceItem
 import net.peanuuutz.intellibow.item.module.TrackerItem
 import net.peanuuutz.intellibow.network.TrackerArrowSpawnS2CPacketFactory
 import net.peanuuutz.intellibow.util.*
-import kotlin.math.min
 
 abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjector {
     open val baseSpeedModifier = 0.0f
@@ -45,13 +45,14 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
                 if (pullProgress > 0.1f) {
                     val noConsume = (isCreative || infinity) && ammo.item == Items.ARROW
                     if (!world.isClient) {
+                        val lighter = stack.findModule(LighterItem)?.getInt(Constants.LIGHTER_MODE_TAG)?.equals(1) == true
                         val arrow = (if (ammo.item is ArrowItem) ammo.item else Items.ARROW) as ArrowItem
                         val arrowEntity = if (stack.findModule(TrackerItem) != null) {
                             TrackerArrowEntity(world, ammo, user)
                         } else {
                             arrow.createArrow(world, ammo, user)
                         }
-                        arrowEntity.apply {
+                        with(arrowEntity) {
                             setProperties(
                                 user, user.pitch, user.yaw,
                                 0.0f, 3.0f * pullProgress, 1.0f
@@ -68,8 +69,7 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
                             if (punch > 0) {
                                 setPunch(punch)
                             }
-                            if (stack.findModule(LighterItem)?.getInt(Constants.LIGHTER_MODE_TAG)?.equals(1) == true ||
-                                EnchantmentHelper.getLevel(Enchantments.FLAME, stack) > 0
+                            if (lighter || EnchantmentHelper.getLevel(Enchantments.FLAME, stack) > 0
                             ) {
                                 setOnFireFor(100)
                             }
@@ -78,11 +78,12 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
                             ) {
                                 pickupType = PersistentProjectileEntity.PickupPermission.CREATIVE_ONLY
                             }
-                        }.let(world::spawnEntity)
+                        }
+                        world.spawnEntity(arrowEntity)
                         if (arrowEntity is TrackerArrowEntity) {
                             TrackerArrowSpawnS2CPacketFactory.send(arrowEntity)
                         }
-                        stack.damage(1, user) { it.sendToolBreakStatus(user.activeHand) }
+                        stack.damage(if (lighter) 2 else 1, user) { it.sendToolBreakStatus(user.activeHand) }
                     }
                     world.playSound(
                         user.x, user.y, user.z,
@@ -107,7 +108,7 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
         if (stack.findModule(PullingDeviceItem) != null) {
             speedModifier += pullingDeviceSpeedModifier
         }
-        val pullTime = min(1.0f, useTicks / 20.0f * (1 + speedModifier))
+        val pullTime = clamp(useTicks / 20.0f * (1 + speedModifier), 0.0f, 1.0f)
         return pullTime * (2.0f - pullTime)
     }
 
@@ -132,12 +133,10 @@ abstract class IntelliBowItem(settings: Settings) : BowItem(settings), IDInjecto
         tooltip: MutableList<Text>,
         context: TooltipContext
     ) {
-        val modules = stack.modules
-        if (modules.isNotEmpty()) {
-            tooltip.add(TranslatableText(
-                "item.intellibow.intellibow.tooltip",
-                modules.joinToString { I18n.translate("item.intellibow.${it.id}") }
-            ).formatted(Formatting.LIGHT_PURPLE))
+        val modulesByName = stack.modules.joinToString { I18n.translate("item.intellibow.${it.id}") }
+        if (modulesByName.isNotEmpty()) {
+            tooltip.add(TranslatableText("item.intellibow.intellibow.tooltip", modulesByName)
+                .formatted(Formatting.DARK_GREEN, Formatting.ITALIC))
         }
     }
 }

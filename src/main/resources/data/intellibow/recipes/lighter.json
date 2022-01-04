@@ -16,7 +16,7 @@
       "item": "minecraft:gold_nugget"
     },
     "C": {
-      "item": "minecraft:coal"
+      "tag": "minecraft:coals"
     }
   },
   "result": {

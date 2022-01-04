@@ -21,24 +21,24 @@ object TrajectoryRenderer {
     private val range = IntelliBow.config.moduleAttributes.trajectorySimulatorRange
 
     fun register() {
-        WorldRenderEvents.LAST.register { it.run {
-            if (!camera().isThirdPerson) {
-                val player = MinecraftClient.getInstance().player ?: return@run
+        WorldRenderEvents.LAST.register event@{ context ->
+            if (!context.camera().isThirdPerson) {
+                val player = MinecraftClient.getInstance().player ?: return@event
                 val bow = when {
                     player.mainHandStack.item is IntelliBowItem -> player.mainHandStack
                     player.offHandStack.item is IntelliBowItem -> player.offHandStack
-                    else -> return@run
+                    else -> return@event
                 }
                 if (player.activeItem.item is IntelliBowItem) {
                     if (bow.findModule(TrajectorySimulatorItem) != null) {
                         val pullProgress = (bow.item as IntelliBowItem).getPullProgress(bow, player.itemUseTime)
                         if (pullProgress >= 0.1f) {
-                            renderCurve(matrixStack(), tickDelta(), world(), player, pullProgress)
+                            renderCurve(context.matrixStack(), context.tickDelta(), context.world(), player, pullProgress)
                         }
                     }
                 }
             }
-        } }
+        }
     }
 
     private fun renderCurve(

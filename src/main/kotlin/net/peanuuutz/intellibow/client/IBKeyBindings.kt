@@ -12,7 +12,7 @@ import org.lwjgl.glfw.GLFW
 val TOGGLE_LIGHTER_KEY: KeyBinding by lazy {
     keyBinding(
         translationKey = "toggle_lighter",
-        key = GLFW.GLFW_KEY_C,
+        key = GLFW.GLFW_KEY_V,
         category = "general"
     )
 }

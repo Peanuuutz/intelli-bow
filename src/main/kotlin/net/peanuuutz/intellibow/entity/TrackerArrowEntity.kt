@@ -10,22 +10,18 @@ import net.minecraft.entity.SpawnGroup
 import net.minecraft.entity.data.DataTracker
 import net.minecraft.entity.data.TrackedData
 import net.minecraft.entity.data.TrackedDataHandlerRegistry
-import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.projectile.PersistentProjectileEntity
 import net.minecraft.item.*
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.potion.PotionUtil
 import net.minecraft.util.Identifier
-import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
 import net.peanuuutz.intellibow.IntelliBow
+import net.peanuuutz.intellibow.api.IntelliArrowItem
 import net.peanuuutz.intellibow.util.Constants
 import net.peanuuutz.intellibow.util.IDInjector
 import net.peanuuutz.intellibow.util.entityType
 import net.peanuuutz.intellibow.util.getCompoundOrCreate
-import kotlin.math.max
 
 class TrackerArrowEntity(
     type: EntityType<TrackerArrowEntity> = ENTITY_TYPE,
@@ -39,11 +35,11 @@ class TrackerArrowEntity(
         if (owner is PlayerEntity) {
             pickupType = PickupPermission.ALLOWED
         }
-        dataTracker[IMITATOR] = imitator
+        dataTracker[IMITATOR] = imitator.copy()
     }
 
-    override fun tick() {
-        super.tick() // TODO: implementation
+    override fun tick() { // TODO: implementation
+        super.tick()
     }
 
     override fun initDataTracker() {
@@ -58,30 +54,17 @@ class TrackerArrowEntity(
         }
     }
 
-    override fun asItemStack(): ItemStack = dataTracker[IMITATOR] // Why it's protected??
+    override fun asItemStack(): ItemStack {
+        val ammo = dataTracker[IMITATOR]
+        val arrowItem = ammo.item.asIntelliArrowItem()
+        return arrowItem.asItemStack(ammo)
+    }
 
-    override fun onHit(target: LivingEntity) { // Why it's protected??
+    override fun onHit(target: LivingEntity) {
         super.onHit(target)
         val ammo = dataTracker[IMITATOR]
-        when (ammo.item) {
-            is SpectralArrowItem -> {
-                target.addStatusEffect(StatusEffectInstance(StatusEffects.GLOWING, 200))
-            }
-            is TippedArrowItem -> {
-                PotionUtil.getPotion(ammo).effects.forEach {
-                    target.addStatusEffect(StatusEffectInstance(
-                        it.effectType,
-                        max(1, it.duration / 8),
-                        it.amplifier,
-                        it.isAmbient,
-                        it.shouldShowParticles()
-                    ))
-                }
-                PotionUtil.getCustomPotionEffects(ammo)
-                    .map(::StatusEffectInstance)
-                    .forEach(target::addStatusEffect)
-            }
-        }
+        val arrowItem = ammo.item.asIntelliArrowItem()
+        arrowItem.onHit(ammo, target)
     }
 
     override fun writeCustomDataToTag(tag: CompoundTag) {
@@ -103,6 +86,8 @@ class TrackerArrowEntity(
             }
         }
     }
+
+    private fun Item.asIntelliArrowItem() = this as? IntelliArrowItem ?: Items.ARROW as IntelliArrowItem
 
     companion object {
         private val IMITATOR = DataTracker.registerData(TrackerArrowEntity::class.java, TrackedDataHandlerRegistry.ITEM_STACK)

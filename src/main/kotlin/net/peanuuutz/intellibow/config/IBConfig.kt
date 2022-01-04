@@ -3,9 +3,9 @@ package net.peanuuutz.intellibow.config
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.fabricmc.loader.api.FabricLoader
-import net.mamoe.yamlkt.Comment
-import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.intellibow.IntelliBow
+import net.peanuuutz.tomlkt.Comment
+import net.peanuuutz.tomlkt.Toml
 import java.nio.file.Files
 
 @Serializable
@@ -62,12 +62,12 @@ data class IBConfig(
 }
 
 object IBConfigProvider {
-    private val configPath = FabricLoader.getInstance().configDir.resolve("${IntelliBow.MOD_ID}.yaml")
+    private val configPath = FabricLoader.getInstance().configDir.resolve("${IntelliBow.MOD_ID}.toml")
 
     fun load(): IBConfig = if (Files.exists(configPath)) {
         try {
-            val content = Files.newBufferedReader(configPath).use { it.readText() }
-            Yaml.decodeFromString(IBConfig.serializer(), content).apply {
+            val content = configPath.toFile().readText()
+            Toml.decodeFromString(IBConfig.serializer(), content).apply {
                 recursiveBowAttribute.validate()
                 compositeBowAttribute.validate()
                 moduleAttributes.validate()
@@ -86,8 +86,8 @@ object IBConfigProvider {
             Files.delete(configPath)
         }
         Files.createFile(configPath)
-        val content = Yaml.encodeToString(config)
-        configPath.toFile().printWriter().use { it.write(content) }
+        val content = Toml.encodeToString(IBConfig.serializer(), config)
+        configPath.toFile().writeText(content)
         return config
     }
 }

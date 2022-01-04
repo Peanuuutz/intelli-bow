@@ -1,28 +1,27 @@
-import kotlin.collections.listOf
-
 plugins {
-    id("fabric-loom")
-
     val kotlinVersion: String by System.getProperties()
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("fabric-loom")
+    id("com.github.johnrengelman.shadow") version "7.1.0"
 }
 
 base {
-    val archivesBaseName: String by rootProject
-    this.archivesBaseName = archivesBaseName
-    val modVersion: String by rootProject
-    version = modVersion
-    val mavenGroup: String by rootProject
-    group = mavenGroup
+    val archivesName: String by project
+    this.archivesName.set(archivesName)
 }
+
+val modVersion: String by project
+version = modVersion
+val mavenGroup: String by project
+group = mavenGroup
 
 minecraft {}
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -34,27 +33,31 @@ dependencies {
     mappings("net.fabricmc:yarn:$yarnVersion:v2")
     val loaderVersion: String by project
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
-    val fabricVersion: String by project
-    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
+    val fabricApiVersion: String by project
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     val fabricKotlinVersion: String by project
     modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
-    val yamlktVersion: String by project
-    implementation("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
-    shadow("net.mamoe.yamlkt:yamlkt:$yamlktVersion")
+    val tomlktVersion: String by project
+    implementation("net.peanuuutz:tomlkt:$tomlktVersion") {
+        exclude("org.jetbrains.kotlin")
+        exclude("org.jetbrains.kotlinx")
+    }
+    shadow("net.peanuuutz:tomlkt:$tomlktVersion") {
+        exclude("org.jetbrains.kotlin")
+        exclude("org.jetbrains.kotlinx")
+    }
 
     // Test
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 tasks {
-    shadowJar {
-        configurations = listOf(project.configurations.shadow.get())
-        archiveClassifier.set(null as String?)
-
-        from("LICENSE") {
-            rename { "${it}_${base.archivesBaseName}" }
+    processResources {
+        inputs.property("version", project.version)
+        filesMatching("fabric.mod.json") {
+            expand(mutableMapOf("version" to project.version))
         }
     }
 
@@ -65,15 +68,19 @@ tasks {
         }
     }
 
-    processResources {
-        inputs.property("version", project.version)
-        filesMatching("fabric.mod.json") {
-            expand(mutableMapOf("version" to project.version))
-        }
+    shadowJar {
+        relocate("net.peanuuutz.tomlkt", "${project.group}.intellibow.shadowed.net.peanuuutz.yamlkt")
+
+        configurations = listOf(project.configurations.shadow.get())
+        archiveClassifier.set("shadow")
     }
 
-    java {
-        withSourcesJar()
+    remapJar {
+        dependsOn(shadowJar.get())
+        input.set(shadowJar.get().archiveFile)
+        archiveClassifier.set("fabric")
+
+        from("LICENSE")
     }
 
     test {

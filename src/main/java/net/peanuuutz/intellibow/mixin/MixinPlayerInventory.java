@@ -22,12 +22,9 @@ public class MixinPlayerInventory {
 
     private boolean isScopeOpen = false;
 
-    @Inject(method = "scrollInHotbar", at = @At(value = "HEAD"), cancellable = true)
-    private void switchScope(double scrollAmount, CallbackInfo ci) {
-        if (player.getActiveItem().getItem() instanceof IntelliBowItem &&
-                player.isUsingItem() &&
-                hasScope(player.getActiveItem())
-        ) { // TODO: implementation
+    @Inject(method = "scrollInHotbar", at = @At("HEAD"), cancellable = true)
+    private void switchScope(double scrollAmount, CallbackInfo ci) { // TODO: implementation
+        if (player.getActiveItem().getItem() instanceof IntelliBowItem && hasScope(player.getActiveItem())) {
             if (scrollAmount > 0.0d && !isScopeOpen) {
                 player.world.playSound(player, player.getX(), player.getEyeY(), player.getZ(), IBSoundsKt.getSCOPE_OPEN_SOUND(), SoundCategory.PLAYERS, 1.0f, 1.0f);
                 isScopeOpen = true;
